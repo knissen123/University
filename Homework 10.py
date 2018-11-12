@@ -2,6 +2,8 @@ import unittest
 from collections import defaultdict
 from prettytable import PrettyTable
 import os
+import sqlite3
+
 
 
 def file_reader(path, number, header, separator):
@@ -105,6 +107,7 @@ class Instructors:
     def pt_rows(self):
         for course, students in self.course.items(): 
             yield [self.cwid, self.name, self.dept, course, students]
+        
 
 
 
@@ -182,9 +185,12 @@ class Repository:
     def instructor_table(self):
         '''creating instructor table'''
         pt = PrettyTable(field_names =Instructors.pt_hdr)
-        for instructor in self.instructors.values():
-            for row in instructor.pt_rows():
-                pt.add_row(row)
+
+        db_file ='C:/Users/kiera/Downloads/jrr.db'
+        db = sqlite3.connect(db_file)
+        
+        for row in db.execute('select CWID, Name, Dept, Course, Count(Student_CWID) from HW11_instructors i join hw11_grades g on i.CWID = g.Instructor_CWID group by Course'):
+            pt.add_row(row)
 
         print(pt)
 
@@ -203,24 +209,8 @@ def main():
     stevens = Repository(path)
     
 
-class RepositoryTest(unittest.TestCase):
-    '''write unittest for two students and two instructors'''
-
-    def test_files(self):
-        path ='C:/Users/kiera/OneDrive/Grad School Junk/SSW-810/Homework 9'
-        test = Repository(path)
-       
-
-        self.assertEqual(test.students['10103'].course['CS 501'], 'B')
-        self.assertEqual(test.students['10115'].course['CS 545'], 'A')
-        self.assertEqual(test.instructors['98765'].course['SSW 567'], 4)
-        self.assertEqual(test.instructors['98764'].course['SSW 564'], 3)
-        self.assertEqual(test.majors['SYEN'].required, {'SYS 612', 'SYS 671', 'SYS 800'})
-
-    
 
 
 if __name__ == '__main__':
-    unittest.main(exit=False, verbosity=2)
     main()
 
